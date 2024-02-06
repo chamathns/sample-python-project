@@ -15,6 +15,7 @@ def search_wiki(name):
     results = wikipedia.search(name)
     return results
 
+
 def phrase(name):
     """Return phrases from wikipedia"""
     page = wiki(name)
