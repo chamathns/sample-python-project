@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import fire
+
 # from mylib.logic import wiki
 from mylib import logic
 
