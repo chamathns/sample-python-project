@@ -21,6 +21,11 @@ jobs:
         with:
           fetch-depth: 0 
 
+      - name: Configure Git
+        run: |
+          git config --local user.email "chamaths@wso2.com"
+          git config --local user.name "Chamath Samarawickrama"
+
       - name: Install Git and semver tool
         run: |
           sudo apt-get update
