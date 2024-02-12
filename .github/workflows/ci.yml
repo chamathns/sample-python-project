@@ -52,8 +52,8 @@ jobs:
 
       - name: Create and Push Tag
         env:
-          TEMP_TOKEN2: ${{ secrets.TEMP_TOKEN2 }}
+          MY_PAT: ${{ secrets.MY_PAT }}
         run: |
           NEW_TAG=${{ steps.newtag.outputs.NEW_TAG }}
           git tag -a $NEW_TAG -m "Version $NEW_TAG"
-          git push https://${TEMP_TOKEN2}@github.com/chamathns/sample-python-project.git $NEW_TAG
+          git push https://${MY_PAT}@github.com/chamathns/sample-python-project.git $NEW_TAG
