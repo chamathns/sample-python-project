@@ -1,44 +1,53 @@
-name: Create Incremental Tag on Merge or Commit
+name: Custom Tagging Workflow
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-    types: [closed]
+  workflow_dispatch:
+    inputs:
+      custom_tag:
+        description: 'Custom Tag (leave empty to auto-increment from the latest tag)'
+        required: false
+        default: ''
 
 jobs:
   tag:
     runs-on: ubuntu-latest
-    if: >
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     steps:
       - name: Check out code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0 
+          fetch-depth: 0 # Fetch all history for all tags and branches
 
       - name: Configure Git
         run: |
-          git config --local user.email "chamaths@wso2.com"
-          git config --local user.name "Chamath Samarawickrama"
-
-      - name: Install Git and semver tool
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y git
-          sudo npm install -g semver
+          git config --local user.email "you@example.com"
+          git config --local user.name "Your Name"
 
       - name: Determine new tag
         id: newtag
+        env:
+          CUSTOM_TAG: ${{ github.event.inputs.custom_tag }}
         run: |
-          LAST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
-          echo "Last tag is $LAST_TAG"
-          NEW_TAG=$(semver -i patch $LAST_TAG)
-          echo "New tag is $NEW_TAG"
+          if [[ -z "$CUSTOM_TAG" ]]; then
+            # Fetch tags
+            git fetch --tags
+
+            # Get the latest tag
+            LAST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
+            
+            if [[ -z "$LAST_TAG" ]]; then
+              # Default tag if there are no tags
+              echo "No existing tags. Starting with v0.0.1"
+              NEW_TAG="v0.0.1"
+            else
+              echo "Latest tag is $LAST_TAG"
+              # Increment the latest tag
+              NEW_TAG=$(echo $LAST_TAG | awk -F. -v OFS=. '{$NF++; print}')
+            fi
+          else
+            echo "Using custom tag: $CUSTOM_TAG"
+            NEW_TAG=$CUSTOM_TAG
+          fi
+          echo "New tag: $NEW_TAG"
           echo "::set-output name=NEW_TAG::$NEW_TAG"
 
       - name: Create and Push Tag
@@ -46,5 +55,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.TEMP_TOKEN2 }}
         run: |
           NEW_TAG=${{ steps.newtag.outputs.NEW_TAG }}
-          git tag -a $NEW_TAG -m "Incremental version update to $NEW_TAG"
-          git push https://${{ secrets.TEMP_TOKEN2 }}@github.com/chamathns/sample-python-project.git ${{ steps.newtag.outputs.NEW_TAG }}
+          git tag -a $NEW_TAG -m "Version $NEW_TAG"
+          git push origin $NEW_TAG
