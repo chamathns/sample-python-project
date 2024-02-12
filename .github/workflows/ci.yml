@@ -43,8 +43,8 @@ jobs:
 
       - name: Create and Push Tag
         env:
-          GITHUB_TOKEN: ${{ secrets.TEMP_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TEMP_TOKEN2 }}
         run: |
           NEW_TAG=${{ steps.newtag.outputs.NEW_TAG }}
           git tag -a $NEW_TAG -m "Incremental version update to $NEW_TAG"
-          git push https://${{ secrets.TEMP_TOKEN }}@github.com/chamathns/sample-python-project.git ${{ steps.newtag.outputs.NEW_TAG }}
+          git push https://${{ secrets.TEMP_TOKEN2 }}@github.com/chamathns/sample-python-project.git ${{ steps.newtag.outputs.NEW_TAG }}
