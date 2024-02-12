@@ -1,0 +1,40 @@
+name: Incremental Tag on PR Merge
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [closed]
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Fetch all history for all tags and branches
+
+      - name: Install Git and semver tool
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git
+          sudo npm install -g semver
+
+      - name: Determine new tag
+        id: newtag
+        run: |
+          LAST_TAG=$(git describe --tags `git rev-list --tags --max-count=1`)
+          echo "Last tag is $LAST_TAG"
+          NEW_TAG=$(semver -i patch $LAST_TAG)
+          echo "New tag is $NEW_TAG"
+          echo "::set-output name=NEW_TAG::$NEW_TAG"
+
+      - name: Create and Push Tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NEW_TAG=${{ steps.newtag.outputs.NEW_TAG }}
+          git tag -a $NEW_TAG -m "Incremental version update to $NEW_TAG"
+          git push origin $NEW_TAG
