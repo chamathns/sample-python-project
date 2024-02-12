@@ -41,18 +41,15 @@ jobs:
               echo "No existing tags. Starting with v0.0.1"
               NEW_TAG="v0.0.1"
             else
+              echo "Latest tag is $LAST_TAG"
               # Increment the latest tag
-              BASE_STRING=$(echo "$LAST_TAG" | grep -o '[^-]*$')
-              MAJOR=$(echo "$BASE_STRING" | cut -d. -f1)
-              MINOR=$(echo "$BASE_STRING" | cut -d. -f2)
-              PATCH=$(echo "$BASE_STRING" | cut -d. -f3)
-              PATCH=$((PATCH+1))
-              NEW_TAG="$MAJOR.$MINOR.$PATCH"
-              # Ensure the new tag is prefixed with 'v' if the last tag was
-              if [[ "$LAST_TAG" == v* ]]; then
-                NEW_TAG="v$NEW_TAG"
-              fi
+              NEW_TAG=$(echo $LAST_TAG | awk -F. -v OFS=. '{$NF++; print}')
             fi
+            # Ensure the new tag is prefixed with 'v' if the last tag was
+            if [[ "$LAST_TAG" == v* ]]; then
+              NEW_TAG="v$NEW_TAG"
+            fi
+          else
             echo "Using custom tag: $CUSTOM_TAG"
             NEW_TAG=$CUSTOM_TAG
           fi
